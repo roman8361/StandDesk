@@ -15,7 +15,7 @@ A web service for teachers to manage student records for adjustable standing-des
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
-- **Authentication**: Clerk (Replit-managed)
+- **Authentication**: Session-based auth
 - **Frontend**: React + Vite + TailwindCSS v4 + shadcn/ui
 
 ## Artifacts
@@ -42,7 +42,7 @@ A web service for teachers to manage student records for adjustable standing-des
 
 ## Database Schema
 
-- `users` — id, clerk_id, name, email, role (teacher/admin), created_at
+- `users` — id, username, name, email, password_hash, role (teacher/admin), created_at
 - `classes` — id, name, student_count, teacher_id, created_at, updated_at
 - `students` — id, class_id, full_name, age, height, vision, weight
 
