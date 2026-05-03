@@ -20,6 +20,18 @@ type TeacherRow = {
   createdAt: string;
 };
 
+async function readErrorMessage(res: Response, fallback: string) {
+  const contentType = res.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    const data = await res.json().catch(() => null);
+    if (data && typeof data === "object" && "error" in data && typeof (data as { error?: unknown }).error === "string") {
+      return (data as { error: string }).error;
+    }
+  }
+  const text = await res.text().catch(() => "");
+  return text ? fallback : fallback;
+}
+
 export default function AdminDashboard() {
   const { data: stats, isLoading: statsLoading } = useGetAdminStats();
   const { data: classes, isLoading: classesLoading } = useListClasses();
@@ -42,9 +54,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(form),
       });
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Сессия недоступна. Перезайдите как admin.");
-        const data = await res.json();
-        throw new Error(data.error ?? "Ошибка создания учителя");
+        throw new Error(await readErrorMessage(res, res.status === 401 ? "Сессия недоступна. Перезайдите как admin." : "Ошибка создания учителя"));
       }
       setForm({ username: "", password: "", name: "", email: "" });
       await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ["/api/admin/teachers"] })]);
@@ -64,9 +74,7 @@ export default function AdminDashboard() {
         credentials: "include",
       });
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Сессия недоступна. Перезайдите как admin.");
-        const data = await res.json();
-        throw new Error(data.error ?? "Ошибка удаления учителя");
+        throw new Error(await readErrorMessage(res, res.status === 401 ? "Сессия недоступна. Перезайдите как admin." : "Ошибка удаления учителя"));
       }
       await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ["/api/admin/teachers"] })]);
       toast({ title: "Учитель удалён" });
@@ -92,9 +100,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(editForm),
       });
       if (!res.ok) {
-        if (res.status === 401) throw new Error("Сессия недоступна. Перезайдите как admin.");
-        const data = await res.json();
-        throw new Error(data.error ?? "Ошибка редактирования учителя");
+        throw new Error(await readErrorMessage(res, res.status === 401 ? "Сессия недоступна. Перезайдите как admin." : "Ошибка редактирования учителя"));
       }
       setEditId(null);
       setEditForm({ username: "", password: "", name: "", email: "" });
