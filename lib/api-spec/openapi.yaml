@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: API specification for School Desk Manager
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: classes
+    description: Class management
+  - name: students
+    description: Student management
+  - name: admin
+    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,264 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Get current user profile
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /classes:
+    get:
+      operationId: listClasses
+      tags: [classes]
+      summary: List classes for current teacher (or all classes for admin)
+      responses:
+        "200":
+          description: List of classes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SchoolClass"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      operationId: createClass
+      tags: [classes]
+      summary: Create a new class
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateClassBody"
+      responses:
+        "201":
+          description: Created class
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchoolClass"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /classes/{id}:
+    get:
+      operationId: getClass
+      tags: [classes]
+      summary: Get a class by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Class details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchoolClass"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateClass
+      tags: [classes]
+      summary: Update a class
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateClassBody"
+      responses:
+        "200":
+          description: Updated class
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SchoolClass"
+    delete:
+      operationId: deleteClass
+      tags: [classes]
+      summary: Delete a class
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /classes/{id}/students:
+    get:
+      operationId: listStudents
+      tags: [students]
+      summary: List students in a class
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of students
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Student"
+    post:
+      operationId: createStudent
+      tags: [students]
+      summary: Add a student to a class
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStudentBody"
+      responses:
+        "201":
+          description: Created student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+
+  /students/{id}:
+    get:
+      operationId: getStudent
+      tags: [students]
+      summary: Get a student by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Student details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+    patch:
+      operationId: updateStudent
+      tags: [students]
+      summary: Update a student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStudentBody"
+      responses:
+        "200":
+          description: Updated student
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Student"
+    delete:
+      operationId: deleteStudent
+      tags: [students]
+      summary: Delete a student
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /admin/teachers:
+    get:
+      operationId: listTeachers
+      tags: [admin]
+      summary: List all teachers (admin only)
+      responses:
+        "200":
+          description: List of teachers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /admin/stats:
+    get:
+      operationId: getAdminStats
+      tags: [admin]
+      summary: Get admin dashboard statistics
+      responses:
+        "200":
+          description: Admin statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +299,147 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        clerkId:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+          enum: [teacher, admin]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - clerkId
+        - name
+        - email
+        - role
+        - createdAt
+
+    SchoolClass:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        studentCount:
+          type: integer
+        teacherId:
+          type: integer
+        teacherName:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - studentCount
+        - teacherId
+        - createdAt
+        - updatedAt
+
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+        classId:
+          type: integer
+        fullName:
+          type: string
+        age:
+          type: ["integer", "null"]
+        height:
+          type: ["integer", "null"]
+        vision:
+          type: ["string", "null"]
+        weight:
+          type: ["integer", "null"]
+      required:
+        - id
+        - classId
+        - fullName
+
+    CreateClassBody:
+      type: object
+      properties:
+        name:
+          type: string
+        studentCount:
+          type: integer
+      required:
+        - name
+        - studentCount
+
+    UpdateClassBody:
+      type: object
+      properties:
+        name:
+          type: string
+        studentCount:
+          type: integer
+
+    CreateStudentBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        age:
+          type: ["integer", "null"]
+        height:
+          type: ["integer", "null"]
+        vision:
+          type: ["string", "null"]
+        weight:
+          type: ["integer", "null"]
+      required:
+        - fullName
+
+    UpdateStudentBody:
+      type: object
+      properties:
+        fullName:
+          type: string
+        age:
+          type: ["integer", "null"]
+        height:
+          type: ["integer", "null"]
+        vision:
+          type: ["string", "null"]
+        weight:
+          type: ["integer", "null"]
+
+    AdminStats:
+      type: object
+      properties:
+        totalTeachers:
+          type: integer
+        totalClasses:
+          type: integer
+        totalStudents:
+          type: integer
+      required:
+        - totalTeachers
+        - totalClasses
+        - totalStudents
