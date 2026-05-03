@@ -23,20 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("school-desk-user");
       }
     }
-    fetch("/api/auth/me", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data) {
-          setUser(data);
-          localStorage.setItem("school-desk-user", JSON.stringify(data));
-        } else if (!saved) {
-          setUser(null);
-        }
-      })
-      .catch(() => {
-        if (!saved) setUser(null);
-      })
-      .finally(() => setLoading(false));
+    setLoading(false);
   }, []);
 
   const login = useCallback(async (username: string, password: string): Promise<AuthUser> => {
