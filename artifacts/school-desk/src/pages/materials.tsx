@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { useAuth } from "@/context/AuthContext";
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -32,7 +33,7 @@ function formatFileSize(bytes: number | null): string {
 }
 
 export default function MaterialsPage() {
-  const { user } = useAuth();
+  const { user, apiFetch } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -45,7 +46,7 @@ export default function MaterialsPage() {
   const { data: materials, isLoading } = useQuery<Material[]>({
     queryKey: ["/api/materials"],
     queryFn: async () => {
-      const res = await fetch("/api/materials", { credentials: "include" });
+      const res = await apiFetch("/api/materials");
       if (!res.ok) throw new Error("Ошибка загрузки материалов");
       return res.json();
     },
@@ -53,9 +54,8 @@ export default function MaterialsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await fetch(`/api/materials/${id}`, {
+      const res = await apiFetch(`/api/materials/${id}`, {
         method: "DELETE",
-        credentials: "include",
       });
       if (!res.ok) throw new Error("Ошибка удаления");
     },
@@ -79,9 +79,8 @@ export default function MaterialsPage() {
       formData.append("content", content.trim());
       if (file) formData.append("file", file);
 
-      const res = await fetch("/api/materials", {
+      const res = await apiFetch("/api/materials", {
         method: "POST",
-        credentials: "include",
         body: formData,
       });
       if (!res.ok) {
