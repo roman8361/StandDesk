@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -16,14 +16,15 @@ const formSchema = z.object({
 });
 
 export default function LoginPage() {
-  const { login, user } = useAuth();
+  const { login, user, loading } = useAuth();
   const [, setLocation] = useLocation();
   const [error, setError] = useState<string | null>(null);
 
-  if (user) {
-    setLocation(user.role === "admin" ? "/admin" : "/dashboard");
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      setLocation(user.role === "admin" ? "/admin" : "/dashboard");
+    }
+  }, [user, setLocation]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,6 +40,14 @@ export default function LoginPage() {
       setError(err instanceof Error ? err.message : "Ошибка входа");
     }
   };
+
+  if (loading || user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-muted-foreground text-sm">Загрузка...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
