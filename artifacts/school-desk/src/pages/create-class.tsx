@@ -37,24 +37,22 @@ export default function CreateClass() {
     setIsSubmitting(true);
     try {
       const newClass = await createClass.mutateAsync({ data: values });
-      
-      // Auto-generate empty students
-      const promises = Array.from({ length: values.studentCount }).map((_, i) => 
-        createStudent.mutateAsync({
+      for (let i = 0; i < values.studentCount; i++) {
+        await createStudent.mutateAsync({
           id: newClass.id,
           data: {
             fullName: `Ученик ${i + 1}`,
-          }
-        })
-      );
-      
-      await Promise.all(promises);
-      
+          },
+        });
+      }
       queryClient.invalidateQueries({ queryKey: getListClassesQueryKey() });
       toast({ title: "Класс успешно создан" });
       setLocation(`/classes/${newClass.id}`);
     } catch (error) {
-      toast({ title: "Ошибка при создании класса", variant: "destructive" });
+      toast({
+        title: error instanceof Error ? error.message : "Ошибка при создании класса",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
