@@ -1,7 +1,7 @@
 import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { db, usersTable, classesTable, studentsTable } from "@workspace/db";
-import { count, eq } from "drizzle-orm";
+import { count, eq, and } from "drizzle-orm";
 import { requireAdmin } from "../middlewares/requireAuth";
 
 const router = Router();
@@ -122,6 +122,7 @@ router.delete("/teachers/:id", requireAdmin, async (req, res) => {
     return;
   }
 
+  await db.delete(classesTable).where(eq(classesTable.teacherId, id));
   await db.delete(usersTable).where(eq(usersTable.id, id));
   res.status(204).send();
 });
