@@ -55,6 +55,26 @@ router.post("/teachers", requireAdmin, async (req, res) => {
   });
 });
 
+router.delete("/teachers/:id", requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (Number.isNaN(id)) {
+    res.status(400).json({ error: "Некорректный идентификатор учителя" });
+    return;
+  }
+  const existing = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
+  if (!existing[0]) {
+    res.status(404).json({ error: "Учитель не найден" });
+    return;
+  }
+  if (existing[0].role !== "teacher") {
+    res.status(400).json({ error: "Удалять можно только учителей" });
+    return;
+  }
+
+  await db.delete(usersTable).where(eq(usersTable.id, id));
+  res.status(204).send();
+});
+
 router.get("/stats", requireAdmin, async (req, res) => {
   const [teacherCount] = await db.select({ value: count() }).from(usersTable).where(eq(usersTable.role, "teacher"));
   const [classCount] = await db.select({ value: count() }).from(classesTable);
