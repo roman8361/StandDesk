@@ -13,6 +13,15 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface OkResponse {
+  ok: boolean;
+}
+
+export interface LoginBody {
+  username: string;
+  password: string;
+}
+
 export type UserRole = (typeof UserRole)[keyof typeof UserRole];
 
 export const UserRole = {
@@ -22,7 +31,7 @@ export const UserRole = {
 
 export interface User {
   id: number;
-  clerkId: string;
+  username: string;
   name: string;
   email: string;
   role: UserRole;

@@ -1,6 +1,5 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
   description: API specification for School Desk Manager
@@ -9,43 +8,76 @@ servers:
     description: Base API path
 tags:
   - name: health
-    description: Health operations
   - name: auth
-    description: Authentication operations
   - name: classes
-    description: Class management
   - name: students
-    description: Student management
   - name: admin
-    description: Admin operations
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
-      summary: Health check
+      summary: Проверка состояния
       responses:
         "200":
-          description: Healthy
+          description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
-  /auth/me:
-    get:
-      operationId: getMe
+  /auth/login:
+    post:
+      operationId: login
       tags: [auth]
-      summary: Get current user profile
+      summary: Вход в систему
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginBody"
       responses:
         "200":
-          description: Current user
+          description: Успешный вход
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/User"
         "401":
-          description: Unauthorized
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /auth/logout:
+    post:
+      operationId: logout
+      tags: [auth]
+      summary: Выход из системы
+      responses:
+        "200":
+          description: Успешно
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OkResponse"
+
+  /auth/me:
+    get:
+      operationId: getMe
+      tags: [auth]
+      summary: Текущий пользователь
+      responses:
+        "200":
+          description: Текущий пользователь
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Не авторизован
           content:
             application/json:
               schema:
@@ -55,26 +87,20 @@ paths:
     get:
       operationId: listClasses
       tags: [classes]
-      summary: List classes for current teacher (or all classes for admin)
+      summary: Список классов
       responses:
         "200":
-          description: List of classes
+          description: Список классов
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/SchoolClass"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
     post:
       operationId: createClass
       tags: [classes]
-      summary: Create a new class
+      summary: Создать класс
       requestBody:
         required: true
         content:
@@ -83,13 +109,13 @@ paths:
               $ref: "#/components/schemas/CreateClassBody"
       responses:
         "201":
-          description: Created class
+          description: Класс создан
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SchoolClass"
         "400":
-          description: Validation error
+          description: Ошибка валидации
           content:
             application/json:
               schema:
@@ -99,7 +125,7 @@ paths:
     get:
       operationId: getClass
       tags: [classes]
-      summary: Get a class by ID
+      summary: Получить класс
       parameters:
         - name: id
           in: path
@@ -108,13 +134,13 @@ paths:
             type: integer
       responses:
         "200":
-          description: Class details
+          description: Класс
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/SchoolClass"
         "404":
-          description: Not found
+          description: Не найден
           content:
             application/json:
               schema:
@@ -122,7 +148,7 @@ paths:
     patch:
       operationId: updateClass
       tags: [classes]
-      summary: Update a class
+      summary: Обновить класс
       parameters:
         - name: id
           in: path
@@ -137,7 +163,7 @@ paths:
               $ref: "#/components/schemas/UpdateClassBody"
       responses:
         "200":
-          description: Updated class
+          description: Обновлено
           content:
             application/json:
               schema:
@@ -145,7 +171,7 @@ paths:
     delete:
       operationId: deleteClass
       tags: [classes]
-      summary: Delete a class
+      summary: Удалить класс
       parameters:
         - name: id
           in: path
@@ -154,13 +180,13 @@ paths:
             type: integer
       responses:
         "204":
-          description: Deleted
+          description: Удалено
 
   /classes/{id}/students:
     get:
       operationId: listStudents
       tags: [students]
-      summary: List students in a class
+      summary: Список учеников в классе
       parameters:
         - name: id
           in: path
@@ -169,7 +195,7 @@ paths:
             type: integer
       responses:
         "200":
-          description: List of students
+          description: Список учеников
           content:
             application/json:
               schema:
@@ -179,7 +205,7 @@ paths:
     post:
       operationId: createStudent
       tags: [students]
-      summary: Add a student to a class
+      summary: Добавить ученика
       parameters:
         - name: id
           in: path
@@ -194,7 +220,7 @@ paths:
               $ref: "#/components/schemas/CreateStudentBody"
       responses:
         "201":
-          description: Created student
+          description: Ученик создан
           content:
             application/json:
               schema:
@@ -204,7 +230,7 @@ paths:
     get:
       operationId: getStudent
       tags: [students]
-      summary: Get a student by ID
+      summary: Получить ученика
       parameters:
         - name: id
           in: path
@@ -213,7 +239,7 @@ paths:
             type: integer
       responses:
         "200":
-          description: Student details
+          description: Ученик
           content:
             application/json:
               schema:
@@ -221,7 +247,7 @@ paths:
     patch:
       operationId: updateStudent
       tags: [students]
-      summary: Update a student
+      summary: Обновить ученика
       parameters:
         - name: id
           in: path
@@ -236,7 +262,7 @@ paths:
               $ref: "#/components/schemas/UpdateStudentBody"
       responses:
         "200":
-          description: Updated student
+          description: Обновлено
           content:
             application/json:
               schema:
@@ -244,7 +270,7 @@ paths:
     delete:
       operationId: deleteStudent
       tags: [students]
-      summary: Delete a student
+      summary: Удалить ученика
       parameters:
         - name: id
           in: path
@@ -253,37 +279,31 @@ paths:
             type: integer
       responses:
         "204":
-          description: Deleted
+          description: Удалено
 
   /admin/teachers:
     get:
       operationId: listTeachers
       tags: [admin]
-      summary: List all teachers (admin only)
+      summary: Все учителя (только админ)
       responses:
         "200":
-          description: List of teachers
+          description: Список учителей
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: "#/components/schemas/User"
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
 
   /admin/stats:
     get:
       operationId: getAdminStats
       tags: [admin]
-      summary: Get admin dashboard statistics
+      summary: Статистика (только админ)
       responses:
         "200":
-          description: Admin statistics
+          description: Статистика
           content:
             application/json:
               schema:
@@ -296,23 +316,37 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
     ErrorResponse:
       type: object
       properties:
         error:
           type: string
-      required:
-        - error
+      required: [error]
+
+    OkResponse:
+      type: object
+      properties:
+        ok:
+          type: boolean
+      required: [ok]
+
+    LoginBody:
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      required: [username, password]
 
     User:
       type: object
       properties:
         id:
           type: integer
-        clerkId:
+        username:
           type: string
         name:
           type: string
@@ -324,13 +358,7 @@ components:
         createdAt:
           type: string
           format: date-time
-      required:
-        - id
-        - clerkId
-        - name
-        - email
-        - role
-        - createdAt
+      required: [id, username, name, email, role, createdAt]
 
     SchoolClass:
       type: object
@@ -351,13 +379,7 @@ components:
         updatedAt:
           type: string
           format: date-time
-      required:
-        - id
-        - name
-        - studentCount
-        - teacherId
-        - createdAt
-        - updatedAt
+      required: [id, name, studentCount, teacherId, createdAt, updatedAt]
 
     Student:
       type: object
@@ -376,10 +398,7 @@ components:
           type: ["string", "null"]
         weight:
           type: ["integer", "null"]
-      required:
-        - id
-        - classId
-        - fullName
+      required: [id, classId, fullName]
 
     CreateClassBody:
       type: object
@@ -388,9 +407,7 @@ components:
           type: string
         studentCount:
           type: integer
-      required:
-        - name
-        - studentCount
+      required: [name, studentCount]
 
     UpdateClassBody:
       type: object
@@ -413,8 +430,7 @@ components:
           type: ["string", "null"]
         weight:
           type: ["integer", "null"]
-      required:
-        - fullName
+      required: [fullName]
 
     UpdateStudentBody:
       type: object
@@ -439,7 +455,4 @@ components:
           type: integer
         totalStudents:
           type: integer
-      required:
-        - totalTeachers
-        - totalClasses
-        - totalStudents
+      required: [totalTeachers, totalClasses, totalStudents]

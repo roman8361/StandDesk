@@ -1,16 +1,13 @@
 import { Router } from "express";
-import { getAuth } from "@clerk/express";
 import { db, usersTable, classesTable, studentsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import { requireAuth, resolveCurrentUser } from "../middlewares/requireAuth";
+import { requireAuth, getCurrentUser } from "../middlewares/requireAuth";
 
 const router = Router();
 
-// List classes
 router.get("/", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   let classes;
   if (user.role === "admin") {
@@ -44,15 +41,13 @@ router.get("/", requireAuth, async (req, res) => {
   res.json(classes);
 });
 
-// Create class
 router.post("/", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   const { name: className, studentCount } = req.body;
   if (!className || typeof className !== "string") {
-    res.status(400).json({ error: "Class name is required" });
+    res.status(400).json({ error: "Название класса обязательно" });
     return;
   }
 
@@ -63,11 +58,9 @@ router.post("/", requireAuth, async (req, res) => {
   res.status(201).json({ ...created, teacherName: user.name });
 });
 
-// Get class by id
 router.get("/:id", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   const id = parseInt(req.params.id);
   const result = await db
@@ -85,24 +78,22 @@ router.get("/:id", requireAuth, async (req, res) => {
     .where(eq(classesTable.id, id))
     .limit(1);
 
-  if (!result[0]) { res.status(404).json({ error: "Class not found" }); return; }
+  if (!result[0]) { res.status(404).json({ error: "Класс не найден" }); return; }
   if (user.role !== "admin" && result[0].teacherId !== user.id) {
-    res.status(403).json({ error: "Forbidden" }); return;
+    res.status(403).json({ error: "Доступ запрещён" }); return;
   }
   res.json(result[0]);
 });
 
-// Update class
 router.patch("/:id", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   const id = parseInt(req.params.id);
   const existing = await db.select().from(classesTable).where(eq(classesTable.id, id)).limit(1);
-  if (!existing[0]) { res.status(404).json({ error: "Class not found" }); return; }
+  if (!existing[0]) { res.status(404).json({ error: "Класс не найден" }); return; }
   if (user.role !== "admin" && existing[0].teacherId !== user.id) {
-    res.status(403).json({ error: "Forbidden" }); return;
+    res.status(403).json({ error: "Доступ запрещён" }); return;
   }
 
   const { name: className, studentCount } = req.body;
@@ -114,55 +105,49 @@ router.patch("/:id", requireAuth, async (req, res) => {
   res.json({ ...updated, teacherName: user.name });
 });
 
-// Delete class
 router.delete("/:id", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   const id = parseInt(req.params.id);
   const existing = await db.select().from(classesTable).where(eq(classesTable.id, id)).limit(1);
-  if (!existing[0]) { res.status(404).json({ error: "Class not found" }); return; }
+  if (!existing[0]) { res.status(404).json({ error: "Класс не найден" }); return; }
   if (user.role !== "admin" && existing[0].teacherId !== user.id) {
-    res.status(403).json({ error: "Forbidden" }); return;
+    res.status(403).json({ error: "Доступ запрещён" }); return;
   }
 
   await db.delete(classesTable).where(eq(classesTable.id, id));
   res.status(204).send();
 });
 
-// List students in a class
 router.get("/:id/students", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   const id = parseInt(req.params.id);
   const classResult = await db.select().from(classesTable).where(eq(classesTable.id, id)).limit(1);
-  if (!classResult[0]) { res.status(404).json({ error: "Class not found" }); return; }
+  if (!classResult[0]) { res.status(404).json({ error: "Класс не найден" }); return; }
   if (user.role !== "admin" && classResult[0].teacherId !== user.id) {
-    res.status(403).json({ error: "Forbidden" }); return;
+    res.status(403).json({ error: "Доступ запрещён" }); return;
   }
 
   const students = await db.select().from(studentsTable).where(eq(studentsTable.classId, id));
   res.json(students);
 });
 
-// Create student in class
 router.post("/:id/students", requireAuth, async (req, res) => {
-  const { userId } = getAuth(req);
-  if (!userId) { res.status(401).json({ error: "Unauthorized" }); return; }
-  const user = await resolveCurrentUser(userId);
+  const user = await getCurrentUser(req);
+  if (!user) { res.status(401).json({ error: "Не авторизован" }); return; }
 
   const id = parseInt(req.params.id);
   const classResult = await db.select().from(classesTable).where(eq(classesTable.id, id)).limit(1);
-  if (!classResult[0]) { res.status(404).json({ error: "Class not found" }); return; }
+  if (!classResult[0]) { res.status(404).json({ error: "Класс не найден" }); return; }
   if (user.role !== "admin" && classResult[0].teacherId !== user.id) {
-    res.status(403).json({ error: "Forbidden" }); return;
+    res.status(403).json({ error: "Доступ запрещён" }); return;
   }
 
   const { fullName, age, height, vision, weight } = req.body;
-  if (!fullName) { res.status(400).json({ error: "Full name is required" }); return; }
+  if (!fullName) { res.status(400).json({ error: "ФИО обязательно" }); return; }
 
   const [created] = await db
     .insert(studentsTable)

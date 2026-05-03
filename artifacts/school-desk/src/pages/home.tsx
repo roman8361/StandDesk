@@ -16,16 +16,11 @@ export default function Home() {
               Простой и удобный инструмент для учителей. Управляйте рассадкой учеников за конторками, отслеживайте их параметры и сохраняйте здоровье школьников.
             </p>
           </div>
-          
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-            <Link href="/sign-up">
+            <Link href="/login">
               <Button size="lg" className="w-full sm:w-auto text-lg px-8">
-                Начать работу
-              </Button>
-            </Link>
-            <Link href="/sign-in">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto text-lg px-8">
-                Войти
+                Войти в систему
               </Button>
             </Link>
           </div>
@@ -35,7 +30,7 @@ export default function Home() {
               <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
               </div>
-              <h3 className="font-semibold text-lg mb-2">Учет учеников</h3>
+              <h3 className="font-semibold text-lg mb-2">Учёт учеников</h3>
               <p className="text-muted-foreground text-sm">Ведите базу данных роста, веса и зрения каждого ученика для правильной рассадки.</p>
             </div>
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-border">
@@ -49,8 +44,8 @@ export default function Home() {
               <div className="h-12 w-12 bg-primary/10 rounded-lg flex items-center justify-center text-primary mb-4">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
-              <h3 className="font-semibold text-lg mb-2">Надежность</h3>
-              <p className="text-muted-foreground text-sm">Данные надежно защищены и доступны вам с любого устройства в любой момент.</p>
+              <h3 className="font-semibold text-lg mb-2">Надёжность</h3>
+              <p className="text-muted-foreground text-sm">Данные надёжно защищены и доступны вам с любого устройства в любой момент.</p>
             </div>
           </div>
         </div>

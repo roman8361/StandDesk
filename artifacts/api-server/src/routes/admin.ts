@@ -5,12 +5,11 @@ import { requireAdmin } from "../middlewares/requireAuth";
 
 const router = Router();
 
-// List all teachers
 router.get("/teachers", requireAdmin, async (req, res) => {
   const teachers = await db.select().from(usersTable);
   res.json(teachers.map(t => ({
     id: t.id,
-    clerkId: t.clerkId,
+    username: t.username,
     name: t.name,
     email: t.email,
     role: t.role,
@@ -18,7 +17,6 @@ router.get("/teachers", requireAdmin, async (req, res) => {
   })));
 });
 
-// Admin stats
 router.get("/stats", requireAdmin, async (req, res) => {
   const [teacherCount] = await db.select({ value: count() }).from(usersTable);
   const [classCount] = await db.select({ value: count() }).from(classesTable);

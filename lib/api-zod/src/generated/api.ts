@@ -8,18 +8,23 @@
 import * as zod from "zod";
 
 /**
- * @summary Health check
+ * @summary Проверка состояния
  */
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
 
 /**
- * @summary Get current user profile
+ * @summary Вход в систему
  */
-export const GetMeResponse = zod.object({
+export const LoginBody = zod.object({
+  username: zod.string(),
+  password: zod.string(),
+});
+
+export const LoginResponse = zod.object({
   id: zod.number(),
-  clerkId: zod.string(),
+  username: zod.string(),
   name: zod.string(),
   email: zod.string(),
   role: zod.enum(["teacher", "admin"]),
@@ -27,7 +32,26 @@ export const GetMeResponse = zod.object({
 });
 
 /**
- * @summary List classes for current teacher (or all classes for admin)
+ * @summary Выход из системы
+ */
+export const LogoutResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Текущий пользователь
+ */
+export const GetMeResponse = zod.object({
+  id: zod.number(),
+  username: zod.string(),
+  name: zod.string(),
+  email: zod.string(),
+  role: zod.enum(["teacher", "admin"]),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Список классов
  */
 export const ListClassesResponseItem = zod.object({
   id: zod.number(),
@@ -41,7 +65,7 @@ export const ListClassesResponseItem = zod.object({
 export const ListClassesResponse = zod.array(ListClassesResponseItem);
 
 /**
- * @summary Create a new class
+ * @summary Создать класс
  */
 export const CreateClassBody = zod.object({
   name: zod.string(),
@@ -49,7 +73,7 @@ export const CreateClassBody = zod.object({
 });
 
 /**
- * @summary Get a class by ID
+ * @summary Получить класс
  */
 export const GetClassParams = zod.object({
   id: zod.coerce.number(),
@@ -66,7 +90,7 @@ export const GetClassResponse = zod.object({
 });
 
 /**
- * @summary Update a class
+ * @summary Обновить класс
  */
 export const UpdateClassParams = zod.object({
   id: zod.coerce.number(),
@@ -88,14 +112,14 @@ export const UpdateClassResponse = zod.object({
 });
 
 /**
- * @summary Delete a class
+ * @summary Удалить класс
  */
 export const DeleteClassParams = zod.object({
   id: zod.coerce.number(),
 });
 
 /**
- * @summary List students in a class
+ * @summary Список учеников в классе
  */
 export const ListStudentsParams = zod.object({
   id: zod.coerce.number(),
@@ -113,7 +137,7 @@ export const ListStudentsResponseItem = zod.object({
 export const ListStudentsResponse = zod.array(ListStudentsResponseItem);
 
 /**
- * @summary Add a student to a class
+ * @summary Добавить ученика
  */
 export const CreateStudentParams = zod.object({
   id: zod.coerce.number(),
@@ -128,7 +152,7 @@ export const CreateStudentBody = zod.object({
 });
 
 /**
- * @summary Get a student by ID
+ * @summary Получить ученика
  */
 export const GetStudentParams = zod.object({
   id: zod.coerce.number(),
@@ -145,7 +169,7 @@ export const GetStudentResponse = zod.object({
 });
 
 /**
- * @summary Update a student
+ * @summary Обновить ученика
  */
 export const UpdateStudentParams = zod.object({
   id: zod.coerce.number(),
@@ -170,18 +194,18 @@ export const UpdateStudentResponse = zod.object({
 });
 
 /**
- * @summary Delete a student
+ * @summary Удалить ученика
  */
 export const DeleteStudentParams = zod.object({
   id: zod.coerce.number(),
 });
 
 /**
- * @summary List all teachers (admin only)
+ * @summary Все учителя (только админ)
  */
 export const ListTeachersResponseItem = zod.object({
   id: zod.number(),
-  clerkId: zod.string(),
+  username: zod.string(),
   name: zod.string(),
   email: zod.string(),
   role: zod.enum(["teacher", "admin"]),
@@ -190,7 +214,7 @@ export const ListTeachersResponseItem = zod.object({
 export const ListTeachersResponse = zod.array(ListTeachersResponseItem);
 
 /**
- * @summary Get admin dashboard statistics
+ * @summary Статистика (только админ)
  */
 export const GetAdminStatsResponse = zod.object({
   totalTeachers: zod.number(),

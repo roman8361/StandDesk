@@ -22,6 +22,8 @@ import type {
   CreateStudentBody,
   ErrorResponse,
   HealthStatus,
+  LoginBody,
+  OkResponse,
   SchoolClass,
   Student,
   UpdateClassBody,
@@ -39,7 +41,7 @@ type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * @summary Health check
+ * @summary Проверка состояния
  */
 export const getHealthCheckUrl = () => {
   return `/api/healthz`;
@@ -90,7 +92,7 @@ export type HealthCheckQueryResult = NonNullable<
 export type HealthCheckQueryError = ErrorType<unknown>;
 
 /**
- * @summary Health check
+ * @summary Проверка состояния
  */
 
 export function useHealthCheck<
@@ -114,7 +116,172 @@ export function useHealthCheck<
 }
 
 /**
- * @summary Get current user profile
+ * @summary Вход в систему
+ */
+export const getLoginUrl = () => {
+  return `/api/auth/login`;
+};
+
+export const login = async (
+  loginBody: LoginBody,
+  options?: RequestInit,
+): Promise<User> => {
+  return customFetch<User>(getLoginUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(loginBody),
+  });
+};
+
+export const getLoginMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: BodyType<LoginBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: BodyType<LoginBody> },
+  TContext
+> => {
+  const mutationKey = ["login"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof login>>,
+    { data: BodyType<LoginBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return login(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof login>>
+>;
+export type LoginMutationBody = BodyType<LoginBody>;
+export type LoginMutationError = ErrorType<ErrorResponse>;
+
+/**
+ * @summary Вход в систему
+ */
+export const useLogin = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof login>>,
+    TError,
+    { data: BodyType<LoginBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof login>>,
+  TError,
+  { data: BodyType<LoginBody> },
+  TContext
+> => {
+  return useMutation(getLoginMutationOptions(options));
+};
+
+/**
+ * @summary Выход из системы
+ */
+export const getLogoutUrl = () => {
+  return `/api/auth/logout`;
+};
+
+export const logout = async (options?: RequestInit): Promise<OkResponse> => {
+  return customFetch<OkResponse>(getLogoutUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getLogoutMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof logout>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof logout>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["logout"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof logout>>,
+    void
+  > = () => {
+    return logout(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type LogoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof logout>>
+>;
+
+export type LogoutMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Выход из системы
+ */
+export const useLogout = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof logout>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof logout>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getLogoutMutationOptions(options));
+};
+
+/**
+ * @summary Текущий пользователь
  */
 export const getGetMeUrl = () => {
   return `/api/auth/me`;
@@ -157,7 +324,7 @@ export type GetMeQueryResult = NonNullable<Awaited<ReturnType<typeof getMe>>>;
 export type GetMeQueryError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Get current user profile
+ * @summary Текущий пользователь
  */
 
 export function useGetMe<
@@ -177,7 +344,7 @@ export function useGetMe<
 }
 
 /**
- * @summary List classes for current teacher (or all classes for admin)
+ * @summary Список классов
  */
 export const getListClassesUrl = () => {
   return `/api/classes`;
@@ -198,7 +365,7 @@ export const getListClassesQueryKey = () => {
 
 export const getListClassesQueryOptions = <
   TData = Awaited<ReturnType<typeof listClasses>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<unknown>,
 >(options?: {
   query?: UseQueryOptions<
     Awaited<ReturnType<typeof listClasses>>,
@@ -225,15 +392,15 @@ export const getListClassesQueryOptions = <
 export type ListClassesQueryResult = NonNullable<
   Awaited<ReturnType<typeof listClasses>>
 >;
-export type ListClassesQueryError = ErrorType<ErrorResponse>;
+export type ListClassesQueryError = ErrorType<unknown>;
 
 /**
- * @summary List classes for current teacher (or all classes for admin)
+ * @summary Список классов
  */
 
 export function useListClasses<
   TData = Awaited<ReturnType<typeof listClasses>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<unknown>,
 >(options?: {
   query?: UseQueryOptions<
     Awaited<ReturnType<typeof listClasses>>,
@@ -252,7 +419,7 @@ export function useListClasses<
 }
 
 /**
- * @summary Create a new class
+ * @summary Создать класс
  */
 export const getCreateClassUrl = () => {
   return `/api/classes`;
@@ -315,7 +482,7 @@ export type CreateClassMutationBody = BodyType<CreateClassBody>;
 export type CreateClassMutationError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Create a new class
+ * @summary Создать класс
  */
 export const useCreateClass = <
   TError = ErrorType<ErrorResponse>,
@@ -338,7 +505,7 @@ export const useCreateClass = <
 };
 
 /**
- * @summary Get a class by ID
+ * @summary Получить класс
  */
 export const getGetClassUrl = (id: number) => {
   return `/api/classes/${id}`;
@@ -396,7 +563,7 @@ export type GetClassQueryResult = NonNullable<
 export type GetClassQueryError = ErrorType<ErrorResponse>;
 
 /**
- * @summary Get a class by ID
+ * @summary Получить класс
  */
 
 export function useGetClass<
@@ -423,7 +590,7 @@ export function useGetClass<
 }
 
 /**
- * @summary Update a class
+ * @summary Обновить класс
  */
 export const getUpdateClassUrl = (id: number) => {
   return `/api/classes/${id}`;
@@ -487,7 +654,7 @@ export type UpdateClassMutationBody = BodyType<UpdateClassBody>;
 export type UpdateClassMutationError = ErrorType<unknown>;
 
 /**
- * @summary Update a class
+ * @summary Обновить класс
  */
 export const useUpdateClass = <
   TError = ErrorType<unknown>,
@@ -510,7 +677,7 @@ export const useUpdateClass = <
 };
 
 /**
- * @summary Delete a class
+ * @summary Удалить класс
  */
 export const getDeleteClassUrl = (id: number) => {
   return `/api/classes/${id}`;
@@ -571,7 +738,7 @@ export type DeleteClassMutationResult = NonNullable<
 export type DeleteClassMutationError = ErrorType<unknown>;
 
 /**
- * @summary Delete a class
+ * @summary Удалить класс
  */
 export const useDeleteClass = <
   TError = ErrorType<unknown>,
@@ -594,7 +761,7 @@ export const useDeleteClass = <
 };
 
 /**
- * @summary List students in a class
+ * @summary Список учеников в классе
  */
 export const getListStudentsUrl = (id: number) => {
   return `/api/classes/${id}/students`;
@@ -654,7 +821,7 @@ export type ListStudentsQueryResult = NonNullable<
 export type ListStudentsQueryError = ErrorType<unknown>;
 
 /**
- * @summary List students in a class
+ * @summary Список учеников в классе
  */
 
 export function useListStudents<
@@ -681,7 +848,7 @@ export function useListStudents<
 }
 
 /**
- * @summary Add a student to a class
+ * @summary Добавить ученика
  */
 export const getCreateStudentUrl = (id: number) => {
   return `/api/classes/${id}/students`;
@@ -745,7 +912,7 @@ export type CreateStudentMutationBody = BodyType<CreateStudentBody>;
 export type CreateStudentMutationError = ErrorType<unknown>;
 
 /**
- * @summary Add a student to a class
+ * @summary Добавить ученика
  */
 export const useCreateStudent = <
   TError = ErrorType<unknown>,
@@ -768,7 +935,7 @@ export const useCreateStudent = <
 };
 
 /**
- * @summary Get a student by ID
+ * @summary Получить ученика
  */
 export const getGetStudentUrl = (id: number) => {
   return `/api/students/${id}`;
@@ -828,7 +995,7 @@ export type GetStudentQueryResult = NonNullable<
 export type GetStudentQueryError = ErrorType<unknown>;
 
 /**
- * @summary Get a student by ID
+ * @summary Получить ученика
  */
 
 export function useGetStudent<
@@ -855,7 +1022,7 @@ export function useGetStudent<
 }
 
 /**
- * @summary Update a student
+ * @summary Обновить ученика
  */
 export const getUpdateStudentUrl = (id: number) => {
   return `/api/students/${id}`;
@@ -919,7 +1086,7 @@ export type UpdateStudentMutationBody = BodyType<UpdateStudentBody>;
 export type UpdateStudentMutationError = ErrorType<unknown>;
 
 /**
- * @summary Update a student
+ * @summary Обновить ученика
  */
 export const useUpdateStudent = <
   TError = ErrorType<unknown>,
@@ -942,7 +1109,7 @@ export const useUpdateStudent = <
 };
 
 /**
- * @summary Delete a student
+ * @summary Удалить ученика
  */
 export const getDeleteStudentUrl = (id: number) => {
   return `/api/students/${id}`;
@@ -1003,7 +1170,7 @@ export type DeleteStudentMutationResult = NonNullable<
 export type DeleteStudentMutationError = ErrorType<unknown>;
 
 /**
- * @summary Delete a student
+ * @summary Удалить ученика
  */
 export const useDeleteStudent = <
   TError = ErrorType<unknown>,
@@ -1026,7 +1193,7 @@ export const useDeleteStudent = <
 };
 
 /**
- * @summary List all teachers (admin only)
+ * @summary Все учителя (только админ)
  */
 export const getListTeachersUrl = () => {
   return `/api/admin/teachers`;
@@ -1045,7 +1212,7 @@ export const getListTeachersQueryKey = () => {
 
 export const getListTeachersQueryOptions = <
   TData = Awaited<ReturnType<typeof listTeachers>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<unknown>,
 >(options?: {
   query?: UseQueryOptions<
     Awaited<ReturnType<typeof listTeachers>>,
@@ -1072,15 +1239,15 @@ export const getListTeachersQueryOptions = <
 export type ListTeachersQueryResult = NonNullable<
   Awaited<ReturnType<typeof listTeachers>>
 >;
-export type ListTeachersQueryError = ErrorType<ErrorResponse>;
+export type ListTeachersQueryError = ErrorType<unknown>;
 
 /**
- * @summary List all teachers (admin only)
+ * @summary Все учителя (только админ)
  */
 
 export function useListTeachers<
   TData = Awaited<ReturnType<typeof listTeachers>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<unknown>,
 >(options?: {
   query?: UseQueryOptions<
     Awaited<ReturnType<typeof listTeachers>>,
@@ -1099,7 +1266,7 @@ export function useListTeachers<
 }
 
 /**
- * @summary Get admin dashboard statistics
+ * @summary Статистика (только админ)
  */
 export const getGetAdminStatsUrl = () => {
   return `/api/admin/stats`;
@@ -1150,7 +1317,7 @@ export type GetAdminStatsQueryResult = NonNullable<
 export type GetAdminStatsQueryError = ErrorType<unknown>;
 
 /**
- * @summary Get admin dashboard statistics
+ * @summary Статистика (только админ)
  */
 
 export function useGetAdminStats<
