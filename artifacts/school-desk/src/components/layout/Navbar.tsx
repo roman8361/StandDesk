@@ -36,6 +36,9 @@ export function Navbar() {
                   <Button variant="ghost" className="text-foreground">Мои классы</Button>
                 </Link>
               )}
+              <Link href="/materials">
+                <Button variant="ghost" className="text-foreground">Метод. материалы</Button>
+              </Link>
               <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
               <span className="text-sm font-medium text-muted-foreground hidden sm:inline">{user.name}</span>
               <Button variant="outline" onClick={handleLogout} data-testid="button-logout">

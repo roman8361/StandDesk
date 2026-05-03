@@ -3,6 +3,7 @@ import cors from "cors";
 import pinoHttp from "pino-http";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
+import path from "path";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { seedUsers } from "./lib/seed";
@@ -47,6 +48,9 @@ app.use(
 );
 
 seedUsers().catch((err) => logger.error(err, "Ошибка инициализации пользователей"));
+
+const uploadsDir = path.resolve(process.cwd(), "uploads");
+app.use("/api/uploads", express.static(uploadsDir));
 
 app.use("/api", router);
 

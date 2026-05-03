@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/admin";
 import CreateClass from "./pages/create-class";
 import ClassDetail from "./pages/class-detail";
 import StudentDetail from "./pages/student-detail";
+import MaterialsPage from "./pages/materials";
 import NotFound from "@/pages/not-found";
 
 const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
@@ -53,6 +54,9 @@ function AppRoutes() {
       </Route>
       <Route path="/students/:id">
         {user ? <StudentDetail /> : <Redirect to="/login" />}
+      </Route>
+      <Route path="/materials">
+        {user ? <MaterialsPage /> : <Redirect to="/login" />}
       </Route>
       <Route component={NotFound} />
     </Switch>
