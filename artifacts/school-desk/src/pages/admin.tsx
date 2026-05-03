@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { useGetAdminStats, useListClasses, useListTeachers } from "@workspace/api-client-react";
+import { useAuth } from "@/context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +34,7 @@ async function readErrorMessage(res: Response, fallback: string) {
 }
 
 export default function AdminDashboard() {
+  const { apiFetch } = useAuth();
   const { data: stats, isLoading: statsLoading } = useGetAdminStats();
   const { data: classes, isLoading: classesLoading } = useListClasses();
   const { data: teachers, isLoading: teachersLoading, refetch } = useListTeachers();
@@ -47,10 +49,9 @@ export default function AdminDashboard() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const res = await fetch("/api/admin/teachers", {
+      const res = await apiFetch("/api/admin/teachers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(form),
       });
       if (!res.ok) {
@@ -69,9 +70,8 @@ export default function AdminDashboard() {
   const handleDeleteTeacher = async (id: number) => {
     if (!confirm("Удалить этого учителя?")) return;
     try {
-      const res = await fetch(`/api/admin/teachers/${id}`, {
+      const res = await apiFetch(`/api/admin/teachers/${id}`, {
         method: "DELETE",
-        credentials: "include",
       });
       if (!res.ok) {
         throw new Error(await readErrorMessage(res, res.status === 401 ? "Сессия недоступна. Перезайдите как admin." : "Ошибка удаления учителя"));
@@ -93,10 +93,9 @@ export default function AdminDashboard() {
     if (editId === null) return;
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/admin/teachers/${editId}`, {
+      const res = await apiFetch(`/api/admin/teachers/${editId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify(editForm),
       });
       if (!res.ok) {
