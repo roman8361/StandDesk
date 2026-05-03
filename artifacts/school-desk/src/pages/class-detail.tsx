@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { useParams, Link } from "wouter";
 import { Navbar } from "@/components/layout/Navbar";
 import { useGetClass, getGetClassQueryKey, useListStudents, getListStudentsQueryKey } from "@workspace/api-client-react";
@@ -10,9 +11,30 @@ import { ArrowLeft, UserRound } from "lucide-react";
 export default function ClassDetail() {
   const params = useParams();
   const id = Number(params.id);
+  const [sortBy, setSortBy] = useState("name-asc");
 
   const { data: classData, isLoading: classLoading } = useGetClass(id, { query: { enabled: !!id, queryKey: getGetClassQueryKey(id) } });
   const { data: students, isLoading: studentsLoading } = useListStudents(id, { query: { enabled: !!id, queryKey: getListStudentsQueryKey(id) } });
+  const sortedStudents = useMemo(() => {
+    if (!students) return [];
+    return [...students].sort((a, b) => {
+      switch (sortBy) {
+        case "name-desc":
+          return b.fullName.localeCompare(a.fullName, "ru");
+        case "age-asc":
+          return (a.age ?? Number.MAX_SAFE_INTEGER) - (b.age ?? Number.MAX_SAFE_INTEGER);
+        case "age-desc":
+          return (b.age ?? -1) - (a.age ?? -1);
+        case "height-asc":
+          return (a.height ?? Number.MAX_SAFE_INTEGER) - (b.height ?? Number.MAX_SAFE_INTEGER);
+        case "height-desc":
+          return (b.height ?? -1) - (a.height ?? -1);
+        case "name-asc":
+        default:
+          return a.fullName.localeCompare(b.fullName, "ru");
+      }
+    });
+  }, [students, sortBy]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,7 +45,7 @@ export default function ClassDetail() {
             <ArrowLeft className="w-4 h-4 mr-1" />
             Назад к классам
           </Link>
-          <div className="flex items-end justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               {classLoading ? (
                 <Skeleton className="h-10 w-32 mb-2" />
@@ -35,6 +57,21 @@ export default function ClassDetail() {
               ) : (
                 <p className="text-muted-foreground">Учеников: {classData?.studentCount}</p>
               )}
+            </div>
+            <div className="w-full sm:w-[260px]">
+              <label className="mb-2 block text-sm font-medium text-muted-foreground">Сортировка</label>
+              <select
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="name-asc">По ФИО: А → Я</option>
+                <option value="name-desc">По ФИО: Я → А</option>
+                <option value="age-asc">По возрасту: по возрастанию</option>
+                <option value="age-desc">По возрасту: по убыванию</option>
+                <option value="height-asc">По росту: по возрастанию</option>
+                <option value="height-desc">По росту: по убыванию</option>
+              </select>
             </div>
           </div>
         </div>
@@ -70,7 +107,7 @@ export default function ClassDetail() {
                   </TableCell>
                 </TableRow>
               ) : (
-                students.map((student) => (
+                sortedStudents.map((student) => (
                   <TableRow key={student.id} className="group">
                     <TableCell className="font-medium flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
