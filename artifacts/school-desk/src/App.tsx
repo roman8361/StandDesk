@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 
 import Home from "./pages/home";
+import AboutPage from "./pages/about";
 import LoginPage from "./pages/login";
 import Dashboard from "./pages/dashboard";
 import AdminDashboard from "./pages/admin";
@@ -36,6 +37,7 @@ function AppRoutes() {
           <Home />
         )}
       </Route>
+      <Route path="/about" component={AboutPage} />
       <Route path="/login" component={LoginPage} />
       <Route path="/dashboard">
         {user ? <Dashboard /> : <Redirect to="/login" />}

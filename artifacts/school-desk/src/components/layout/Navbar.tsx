@@ -22,6 +22,9 @@ export function Navbar() {
           <span className="font-bold text-xl text-primary tracking-tight">Конторки</span>
         </Link>
         <nav className="flex items-center gap-4">
+          <Link href="/about">
+            <Button variant="ghost" className="text-foreground">О нас</Button>
+          </Link>
           {user ? (
             <>
               {user.role === "admin" ? (
