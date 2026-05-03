@@ -26,11 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
+  const request = useCallback(async (input: RequestInfo | URL, init?: RequestInit) => {
+    return fetch(input, {
+      ...init,
+      credentials: "include",
+    });
+  }, []);
+
   const login = useCallback(async (username: string, password: string): Promise<AuthUser> => {
-    const res = await fetch("/api/auth/login", {
+    const res = await request("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) {
@@ -44,10 +50,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    await request("/api/auth/logout", { method: "POST" });
     setUser(null);
     localStorage.removeItem("school-desk-user");
-  }, []);
+  }, [request]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>
