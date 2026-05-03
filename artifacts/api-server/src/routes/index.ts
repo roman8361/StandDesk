@@ -12,6 +12,5 @@ router.use("/auth", authRouter);
 router.use("/classes", classesRouter);
 router.use("/students", studentsRouter);
 router.use("/admin", adminRouter);
-router.use("/admin/teachers", adminRouter);
 
 export default router;
