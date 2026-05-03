@@ -4,6 +4,7 @@ import authRouter from "./auth";
 import classesRouter from "./classes";
 import studentsRouter from "./students";
 import adminRouter from "./admin";
+import materialsRouter from "./materials";
 
 const router: IRouter = Router();
 
@@ -12,5 +13,6 @@ router.use("/auth", authRouter);
 router.use("/classes", classesRouter);
 router.use("/students", studentsRouter);
 router.use("/admin", adminRouter);
+router.use("/materials", materialsRouter);
 
 export default router;
