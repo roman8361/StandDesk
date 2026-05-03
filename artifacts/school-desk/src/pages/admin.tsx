@@ -27,6 +27,8 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [form, setForm] = useState({ username: "", password: "", name: "", email: "" });
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ username: "", password: "", name: "", email: "" });
   const [submitting, setSubmitting] = useState(false);
 
   const handleCreateTeacher = async (e: React.FormEvent) => {
@@ -70,6 +72,38 @@ export default function AdminDashboard() {
       toast({ title: "Учитель удалён" });
     } catch (error) {
       toast({ title: error instanceof Error ? error.message : "Ошибка удаления учителя", variant: "destructive" });
+    }
+  };
+
+  const startEditTeacher = (teacher: TeacherRow) => {
+    setEditId(teacher.id);
+    setEditForm({ username: teacher.username, password: "", name: teacher.name, email: teacher.email });
+  };
+
+  const handleEditTeacher = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editId === null) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/admin/teachers/${editId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(editForm),
+      });
+      if (!res.ok) {
+        if (res.status === 401) throw new Error("Сессия недоступна. Перезайдите как admin.");
+        const data = await res.json();
+        throw new Error(data.error ?? "Ошибка редактирования учителя");
+      }
+      setEditId(null);
+      setEditForm({ username: "", password: "", name: "", email: "" });
+      await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ["/api/admin/teachers"] })]);
+      toast({ title: "Учитель обновлён" });
+    } catch (error) {
+      toast({ title: error instanceof Error ? error.message : "Ошибка редактирования учителя", variant: "destructive" });
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -118,6 +152,31 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
+        {editId !== null && (
+          <Card className="border-primary/20">
+            <CardHeader>
+              <CardTitle>Редактировать учителя</CardTitle>
+              <CardDescription>Можно изменить логин, имя, email и пароль. Пароль оставьте пустым, если менять не нужно.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form className="grid grid-cols-1 md:grid-cols-2 gap-4" onSubmit={handleEditTeacher}>
+                <Input placeholder="Логин" value={editForm.username} onChange={(e) => setEditForm({ ...editForm, username: e.target.value })} />
+                <Input placeholder="Новый пароль" type="password" value={editForm.password} onChange={(e) => setEditForm({ ...editForm, password: e.target.value })} />
+                <Input placeholder="Имя" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                <Input placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                <div className="md:col-span-2 flex justify-end gap-2">
+                  <Button type="button" variant="outline" onClick={() => setEditId(null)} disabled={submitting}>
+                    Отмена
+                  </Button>
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? "Сохранение..." : "Сохранить"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div>
             <h2 className="text-xl font-semibold mb-4">Учителя</h2>
@@ -131,7 +190,7 @@ export default function AdminDashboard() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {teachersLoading ? Array(3).fill(0).map((_, i) => <TableRow key={i}><TableCell><Skeleton className="h-4 w-24" /></TableCell><TableCell><Skeleton className="h-4 w-32" /></TableCell><TableCell><Skeleton className="h-4 w-24" /></TableCell><TableCell /></TableRow>) : (teachers as TeacherRow[] | undefined)?.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center py-4">Нет учителей</TableCell></TableRow> : (teachers as TeacherRow[] | undefined)?.map((t) => <TableRow key={t.id}><TableCell className="font-medium">{t.name}</TableCell><TableCell>{t.username}</TableCell><TableCell>{format(new Date(t.createdAt), "dd.MM.yyyy")}</TableCell><TableCell className="text-right"><Button variant="ghost" size="icon" onClick={() => handleDeleteTeacher(t.id)}><Trash2 className="w-4 h-4" /></Button></TableCell></TableRow>)}
+                  {teachersLoading ? Array(3).fill(0).map((_, i) => <TableRow key={i}><TableCell><Skeleton className="h-4 w-24" /></TableCell><TableCell><Skeleton className="h-4 w-32" /></TableCell><TableCell><Skeleton className="h-4 w-24" /></TableCell><TableCell /></TableRow>) : (teachers as TeacherRow[] | undefined)?.length === 0 ? <TableRow><TableCell colSpan={4} className="text-center py-4">Нет учителей</TableCell></TableRow> : (teachers as TeacherRow[] | undefined)?.map((t) => <TableRow key={t.id}><TableCell className="font-medium">{t.name}</TableCell><TableCell>{t.username}</TableCell><TableCell>{format(new Date(t.createdAt), "dd.MM.yyyy")}</TableCell><TableCell className="text-right space-x-2"><Button variant="ghost" size="sm" onClick={() => startEditTeacher(t)}>Редактировать</Button><Button variant="ghost" size="icon" onClick={() => handleDeleteTeacher(t.id)}><Trash2 className="w-4 h-4" /></Button></TableCell></TableRow>)}
                 </TableBody>
               </Table>
             </Card>
