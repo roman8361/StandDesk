@@ -39,6 +39,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(form),
       });
       if (!res.ok) {
+        if (res.status === 401) throw new Error("Сессия недоступна. Перезайдите как admin.");
         const data = await res.json();
         throw new Error(data.error ?? "Ошибка создания учителя");
       }
