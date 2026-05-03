@@ -64,7 +64,7 @@ router.patch("/teachers/:id", requireAdmin, async (req, res) => {
 
   const existing = await db.select().from(usersTable).where(eq(usersTable.id, id)).limit(1);
   if (!existing[0]) {
-    res.status(404).json({ error: "Учитель не найден" });
+    res.status(204).send();
     return;
   }
   if (existing[0].role !== "teacher") {
