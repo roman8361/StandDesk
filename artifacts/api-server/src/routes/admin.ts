@@ -106,8 +106,8 @@ router.patch("/teachers/:id", requireAdmin, async (req, res) => {
   });
 });
 
-router.delete("/teachers/:id", requireAdmin, async (req, res) => {
-  const id = Number(req.params.id);
+router.delete("/teachers/:teacherId", requireAdmin, async (req, res) => {
+  const id = Number(req.params.teacherId);
   if (Number.isNaN(id)) {
     res.status(400).json({ error: "Некорректный идентификатор учителя" });
     return;
