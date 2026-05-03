@@ -23,6 +23,11 @@ export default function Home() {
                 Войти в систему
               </Button>
             </Link>
+            <Link href="/about">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8">
+                О нас
+              </Button>
+            </Link>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-16 text-left">
