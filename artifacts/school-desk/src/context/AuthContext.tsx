@@ -15,10 +15,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const saved = localStorage.getItem("school-desk-user");
+    if (saved) {
+      try {
+        setUser(JSON.parse(saved) as AuthUser);
+      } catch {
+        localStorage.removeItem("school-desk-user");
+      }
+    }
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data))
-      .catch(() => setUser(null))
+      .then((data) => {
+        if (data) {
+          setUser(data);
+          localStorage.setItem("school-desk-user", JSON.stringify(data));
+        } else if (!saved) {
+          setUser(null);
+        }
+      })
+      .catch(() => {
+        if (!saved) setUser(null);
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -35,12 +52,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const data: AuthUser = await res.json();
     setUser(data);
+    localStorage.setItem("school-desk-user", JSON.stringify(data));
     return data;
   }, []);
 
   const logout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setUser(null);
+    localStorage.removeItem("school-desk-user");
   }, []);
 
   return (
